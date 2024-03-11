@@ -1,21 +1,48 @@
-window.onload = function () {
-  let saveButtons = document.getElementsByClassName("saveBtn");
-  for (let i = 0; i < saveButtons.length; i++) {
-    saveButtons[i].addEventListener("click", saveText);
+$(document).ready(function() {
+  // Display the current day
+  $("#currentDay").text(dayjs().format("dddd, MMMM D"));
+
+  // Loads the saved tasks from local storage
+  function loadTasks() {
+    $(".description").each(function() {
+      let hour = $(this).parent().attr("id");
+      let task = localStorage.getItem(hour);
+
+      if (task !== null) {
+        $(this).val(task);
+      }
+    });
   }
 
-  let saveButtons = document.getElementsByClassName("saveBtn");
-  for (let i = 0; i < saveButtons.length; i++) {
-    saveButtons[i].addEventListener("click", saveText);
+  loadTasks();
+
+  // Should hopefully save the tasks to local storage
+  $(".saveBtn").on("click", function() {
+    let hour = $(this).parent().attr("id");
+    let task = $(this).siblings(".description").val();
+
+    localStorage.setItem(hour, task);
+  });
+
+  // When updated should change the colors
+  function updateTimeBlocks() {
+    let currentHour = dayjs().hour();
+
+    $(".time-block").each(function() {
+      let blockHour = parseInt($(this).attr("id").split("-")[1]);
+
+      if (blockHour < currentHour) {
+        $(this).addClass("past").removeClass("present future");
+      } else if (blockHour === currentHour) {
+        $(this).addClass("present").removeClass("past future");
+      } else {
+        $(this).addClass("future").removeClass("past present");
+      }
+    });
   }
 
-  var currentDate = dayjs().format('MMMM DD, YYYY');
-  $("#currentDay").text(currentDate);
+  updateTimeBlocks();
 
-  let saveButtons = document.getElementsByClassName("saveBtn")
-  let timeDisplayEl = $('#time-display');
-
-  function displayTime() {
-    let rightNow = dayjs().format('MMM DD, YYYY [at] hh:mm:ss a');
-    timeDisplayEl.text(rightNow);
-  }
+  // Update time blocks every minute
+  setInterval(updateTimeBlocks, 60000);
+});
